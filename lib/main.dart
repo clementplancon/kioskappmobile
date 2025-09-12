@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
@@ -75,19 +76,20 @@ class SpecsProvider extends ChangeNotifier {
   Specs specs = Specs();
   bool isKiosk = false;
 
+  // Sauvegarder en JSON
+  Future<void> save() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('specs', jsonEncode(specs.toMap()));
+  }
+
+  // Charger depuis le JSON
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
     final map = prefs.getString('specs');
     if (map != null) {
-      specs = Specs.fromMap(Map<String, dynamic>.from(
-          Map<String, dynamic>.from(await Future.value(Map<String, dynamic>.from(Uri.decodeFull(map) as dynamic)))));
+      specs = Specs.fromMap(jsonDecode(map));
       notifyListeners();
     }
-  }
-
-  Future<void> save() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('specs', specs.toMap().toString());
   }
 
   void updateSpecs(Specs newSpecs) {
