@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -5,10 +8,17 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Charge les propriétés du keystore (si le fichier existe)
+val keystoreProps = Properties()
+val keystorePropsFile = rootProject.file("key.properties")
+if (keystorePropsFile.exists()) {
+    keystoreProps.load(FileInputStream(keystorePropsFile))
+}
+
 android {
     namespace = "fr.smartlabz.kioskappmobile"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -20,23 +30,42 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "fr.smartlabz.kioskappmobile"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        targetSdk = 35
+        versionCode = 1
+        versionName = "1.0.0"
+    }
+
+    signingConfigs {
+        // Config release seulement si key.properties est présent et complet
+        if (keystorePropsFile.exists()) {
+            create("release") {
+                val storePath = keystoreProps["storeFile"] as String?
+                if (storePath != null) {
+                    storeFile = file(storePath)
+                }
+                storePassword = keystoreProps["storePassword"] as String?
+                keyAlias = keystoreProps["keyAlias"] as String?
+                keyPassword = keystoreProps["keyPassword"] as String?
+            }
+        }
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            isMinifyEnabled = false
+            isShrinkResources = false   // ⬅️ ajoute cette ligne
+            signingConfig = signingConfigs.getByName("release")
         }
     }
+}
+
+dependencies {
+    implementation("androidx.fragment:fragment-ktx:1.8.2")
+    implementation("androidx.activity:activity-ktx:1.9.2")
+    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("com.google.android.material:material:1.12.0")
 }
 
 flutter {

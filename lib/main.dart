@@ -232,7 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final isKiosk = context.watch<SpecsProvider>().isKiosk;
-    final _screenPadding = MediaQuery.of(context).size.width > 600 ? 64.0 : 16.0;
+    final screenPadding = MediaQuery.of(context).size.width > 600 ? 64.0 : 16.0;
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: !isKiosk
@@ -255,7 +255,7 @@ class _HomeScreenState extends State<HomeScreen> {
             : isKiosk
                 ? KioskScreen(onAdmin: _exitKioskMode)
                 : SingleChildScrollView(
-                    padding: EdgeInsets.all(_screenPadding),
+                    padding: EdgeInsets.all(screenPadding),
                     child: Form(
                       key: _formKey,
                       child: Column(
