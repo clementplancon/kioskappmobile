@@ -18,11 +18,14 @@ class Specs {
   String stockage;
   String tailleEcran;
   String resolution;
+  String capteurMpx;
   String cpu;
   String batterie;
+  String etat;
   String indiceReparabilite;
   String prix;
   String videoUrl;
+
 
   Specs({
     this.marque = '',
@@ -32,8 +35,10 @@ class Specs {
     this.stockage = '',
     this.tailleEcran = '',
     this.resolution = '',
+    this.capteurMpx = '',
     this.cpu = '',
     this.batterie = '',
+    this.etat = '',
     this.indiceReparabilite = '',
     this.prix = '',
     this.videoUrl = '', 
@@ -47,8 +52,10 @@ class Specs {
         'stockage': stockage,
         'tailleEcran': tailleEcran,
         'resolution': resolution,
+        'capteurMpx': capteurMpx, 
         'cpu': cpu,
         'batterie': batterie,
+        'etat': etat, 
         'indiceReparabilite': indiceReparabilite,
         'prix': prix,
         'videoUrl': videoUrl,
@@ -62,8 +69,10 @@ class Specs {
         stockage: map['stockage'] ?? '',
         tailleEcran: map['tailleEcran'] ?? '',
         resolution: map['resolution'] ?? '',
+        capteurMpx: map['capteurMpx'] ?? '',
         cpu: map['cpu'] ?? '',
         batterie: map['batterie'] ?? '',
+        etat: map['etat'] ?? '',
         indiceReparabilite: map['indiceReparabilite'] ?? '',
         prix: map['prix'] ?? '',
         videoUrl: map['videoUrl'] ?? '',
@@ -307,6 +316,7 @@ class SpecsForm extends StatefulWidget {
 
 class _SpecsFormState extends State<SpecsForm> {
   late Specs specs;
+  final _etats = const ['Neuf', 'Excellent état', 'Bon état', 'Correct'];
   @override
   void initState() {
     super.initState();
@@ -331,7 +341,7 @@ class _SpecsFormState extends State<SpecsForm> {
           labelStyle: const TextStyle(color: Colors.black),
           suffixText: suffix,
           filled: true,
-          fillColor: Colors.white.withOpacity(0.8),
+          fillColor: Colors.white.withValues(alpha: 0.8),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         ),
         // plus de validator
@@ -357,8 +367,27 @@ class _SpecsFormState extends State<SpecsForm> {
         input(label: "Stockage total", initial: specs.stockage, onSaved: (v) => specs.stockage = v, suffix: "Go"),
         input(label: "Taille écran", initial: specs.tailleEcran, onSaved: (v) => specs.tailleEcran = v, suffix: "\""),
         input(label: "Résolution écran", initial: specs.resolution, onSaved: (v) => specs.resolution = v, suffix: "px"),
+        input(label: "Capteur principal", initial: specs.capteurMpx, onSaved: (v) => specs.capteurMpx = v, number: true, suffix: "MP"),
         input(label: "CPU", initial: specs.cpu, onSaved: (v) => specs.cpu = v),
         input(label: "Batterie", initial: specs.batterie, onSaved: (v) => specs.batterie = v, suffix: "mAh"),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: DropdownButtonFormField<String>(
+            initialValue: (specs.etat.isEmpty) ? null : specs.etat,
+            items: _etats.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+            onChanged: (val) {
+              specs.etat = val ?? '';
+              widget.onChanged(specs);
+            },
+            decoration: InputDecoration(
+              labelText: "État du téléphone",
+              labelStyle: const TextStyle(color: Colors.black),
+              filled: true,
+              fillColor: Colors.white.withValues(alpha: 0.8),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+        ),
         input(label: "Indice de réparabilité", initial: specs.indiceReparabilite, onSaved: (v) => specs.indiceReparabilite = v),
         input(label: "Prix (€)", initial: specs.prix, onSaved: (v) => specs.prix = v, number: true, suffix: "€"),
         input(label: "Lien YouTube", initial: specs.videoUrl, onSaved: (v) => specs.videoUrl = v,),
@@ -455,7 +484,7 @@ class _KioskScreenState extends State<KioskScreen> {
           ),
           padding: EdgeInsets.all(clamp(padding, 8, 32)),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.93),
+            color: Colors.white.withValues(alpha: 0.93),
             borderRadius: BorderRadius.circular(24),
             boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 12, spreadRadius: 2)],
           ),
@@ -508,13 +537,32 @@ class _KioskScreenState extends State<KioskScreen> {
                     ],
                   ),
                   SizedBox(height: clamp(baseFont * 0.4, 4, 14)),
-                  InfoTile(label: "Résolution", value: empty(specs.resolution), labelFont: labelFont, valueFont: valueFont),
-                  SizedBox(height: clamp(baseFont * 0.35, 4, 14)),
-                  InfoTile(label: "CPU", value: empty(specs.cpu), labelFont: labelFont, valueFont: valueFont),
-                  SizedBox(height: clamp(baseFont * 0.35, 4, 14)),
-                  InfoTile(label: "Batterie", value: "${empty(specs.batterie)} mAh", labelFont: labelFont, valueFont: valueFont),
-                  SizedBox(height: clamp(baseFont * 0.3, 4, 14)),
-                  indiceWidget,
+                  // 2ème ligne : Résolution | Capteur
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Flexible(child: InfoTile(label: "Résolution", value: empty(specs.resolution), labelFont: labelFont, valueFont: valueFont)),
+                      Flexible(child: InfoTile(label: "Capteur principal", value: "${empty(specs.capteurMpx)} MP", labelFont: labelFont, valueFont: valueFont)),
+                    ],
+                  ),
+                  SizedBox(height: clamp(baseFont * 0.4, 4, 14)),
+                  // 3ème ligne : CPU | Batterie
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Flexible(child: InfoTile(label: "CPU", value: empty(specs.cpu), labelFont: labelFont, valueFont: valueFont)),
+                      Flexible(child: InfoTile(label: "Batterie", value: "${empty(specs.batterie)} mAh", labelFont: labelFont, valueFont: valueFont)),
+                    ],
+                  ),
+                  SizedBox(height: clamp(baseFont * 0.4, 4, 14)),
+                  // 4ème ligne : État | Indice réparabilité
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Flexible(child: InfoTile(label: "État", value: empty(specs.etat), labelFont: labelFont, valueFont: valueFont)),
+                      Flexible(child: indiceWidget),
+                    ],
+                  ),
                   if (_controller != null)
                     Container(
                       margin: EdgeInsets.symmetric(vertical: clamp(baseFont * 0.4, 8, 18)),
